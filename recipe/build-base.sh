@@ -21,42 +21,25 @@ fi
 
 VTK_ARGS=()
 
-if [[ "$build_variant" == "noqt" ]]; then
-    VTK_ARGS+=(
-        "-DVTK_DEFAULT_RENDER_WINDOW_OFFSCREEN:BOOL=ON"
-        "-DVTK_MODULE_USE_EXTERNAL_VTK_glew:BOOL=OFF"
-    )
-    if [[ "${target_platform}" == linux-* ]]; then
-        VTK_ARGS+=(
-            "-DVTK_USE_X:BOOL=OFF"
-        )
-    elif [[ "${target_platform}" == osx-* ]]; then
-        VTK_ARGS+=(
-            "-DVTK_USE_COCOA:BOOL=OFF"
-            "-DCMAKE_OSX_SYSROOT:PATH=${CONDA_BUILD_SYSROOT}"
-        )
-    fi
-else  # [[ "$build_variant" == "qt" ]]; then
-    TCLTK_VERSION=`echo 'puts $tcl_version;exit 0' | tclsh`
+TCLTK_VERSION=`echo 'puts $tcl_version;exit 0' | tclsh`
 
+VTK_ARGS+=(
+    "-DVTK_DEFAULT_RENDER_WINDOW_OFFSCREEN:BOOL=OFF"
+    "-DVTK_USE_TK:BOOL=ON"
+    "-DTCL_INCLUDE_PATH=${PREFIX}/include"
+    "-DTK_INCLUDE_PATH=${PREFIX}/include"
+    "-DTCL_LIBRARY:FILEPATH=${PREFIX}/lib/libtcl${TCLTK_VERSION}${SHLIB_EXT}"
+    "-DTK_LIBRARY:FILEPATH=${PREFIX}/lib/libtk${TCLTK_VERSION}${SHLIB_EXT}"
+)
+if [[ "${target_platform}" == linux-* ]]; then
     VTK_ARGS+=(
-        "-DVTK_DEFAULT_RENDER_WINDOW_OFFSCREEN:BOOL=OFF"
-        "-DVTK_USE_TK:BOOL=ON"
-        "-DTCL_INCLUDE_PATH=${PREFIX}/include"
-        "-DTK_INCLUDE_PATH=${PREFIX}/include"
-        "-DTCL_LIBRARY:FILEPATH=${PREFIX}/lib/libtcl${TCLTK_VERSION}${SHLIB_EXT}"
-        "-DTK_LIBRARY:FILEPATH=${PREFIX}/lib/libtk${TCLTK_VERSION}${SHLIB_EXT}"
+        "-DVTK_USE_X:BOOL=ON"
     )
-    if [[ "${target_platform}" == linux-* ]]; then
-        VTK_ARGS+=(
-            "-DVTK_USE_X:BOOL=ON"
-        )
-    elif [[ "${target_platform}" == osx-* ]]; then
-        VTK_ARGS+=(
-            "-DVTK_USE_COCOA:BOOL=ON"
-            "-DCMAKE_OSX_SYSROOT:PATH=${CONDA_BUILD_SYSROOT}"
-        )
-    fi
+elif [[ "${target_platform}" == osx-* ]]; then
+    VTK_ARGS+=(
+        "-DVTK_USE_COCOA:BOOL=ON"
+        "-DCMAKE_OSX_SYSROOT:PATH=${CONDA_BUILD_SYSROOT}"
+    )
 fi
 
 if [[ "$target_platform" != "linux-ppc64le"
