@@ -22,8 +22,6 @@ ffmpeg:
 - '7'
 freetype:
 - '2'
-glew:
-- '2.1'
 hdf5:
 - 1.14.4
 jsoncpp:
