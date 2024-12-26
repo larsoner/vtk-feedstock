@@ -10,7 +10,7 @@ PYTHON_MAJOR_VERSION=${PY_VER%%.*}
 if [[ "${target_platform}" =~ osx-arm64 && "${target_platform}" != "${build_platform}" ]]; then
     rm -f "${PREFIX}/lib/qt6/moc"
     ln -s "${BUILD_PREFIX}/lib/qt6/moc" "${PREFIX}/lib/qt6/moc"
-    
+
     # Additional debugging information
     echo "Adjusted Qt tools for osx-arm64 with build variant qt6"
     echo "Removed: ${PREFIX}/lib/qt6/moc"
@@ -21,19 +21,11 @@ fi
 
 VTK_ARGS=()
 
-if [[ "$build_variant" == "osmesa" ]]; then
-    if [ -f "$PREFIX/lib/libOSMesa32${SHLIB_EXT}" ]; then
-        OSMESA_VERSION="32"
-    fi
+if [[ "$build_variant" == "noqt" ]]; then
     VTK_ARGS+=(
         "-DVTK_DEFAULT_RENDER_WINDOW_OFFSCREEN:BOOL=ON"
-        "-DVTK_OPENGL_HAS_OSMESA:BOOL=ON"
-        "-DOSMESA_INCLUDE_DIR:PATH=${PREFIX}/include"
-        "-DOSMESA_LIBRARY:FILEPATH=${PREFIX}/lib/libOSMesa${OSMESA_VERSION}${SHLIB_EXT}"
-        "-DOPENGL_opengl_LIBRARY:FILEPATH=${BUILD_PREFIX}/${HOST}/sysroot/usr/lib64/libGL.so"
         "-DVTK_MODULE_USE_EXTERNAL_VTK_glew:BOOL=OFF"
     )
-
     if [[ "${target_platform}" == linux-* ]]; then
         VTK_ARGS+=(
             "-DVTK_USE_X:BOOL=OFF"
@@ -44,23 +36,11 @@ if [[ "$build_variant" == "osmesa" ]]; then
             "-DCMAKE_OSX_SYSROOT:PATH=${CONDA_BUILD_SYSROOT}"
         )
     fi
-elif [[ "$build_variant" == "egl" ]]; then
-    VTK_ARGS+=(
-        "-DVTK_USE_X:BOOL=OFF"
-        "-DVTK_OPENGL_HAS_EGL:BOOL=ON"
-        "-DVTK_MODULE_USE_EXTERNAL_VTK_glew:BOOL=OFF"
-        "-DEGL_INCLUDE_DIR:PATH=${BUILD_PREFIX}/${HOST}/sysroot/usr/include"
-        "-DEGL_LIBRARY:FILEPATH=${BUILD_PREFIX}/${HOST}/sysroot/usr/lib/libEGL.so.1"
-        "-DOPENGL_egl_LIBRARY:FILEPATH=${BUILD_PREFIX}/${HOST}/sysroot/usr/lib/libEGL.so.1"
-        "-DEGL_opengl_LIBRARY:FILEPATH=${BUILD_PREFIX}/${HOST}/sysroot/usr/lib64/libGL.so"
-        "-DOPENGL_opengl_LIBRARY:FILEPATH=${BUILD_PREFIX}/${HOST}/sysroot/usr/lib64/libGL.so"
-    )
-elif [[ "$build_variant" == "qt" ]]; then
+else  # [[ "$build_variant" == "qt" ]]; then
     TCLTK_VERSION=`echo 'puts $tcl_version;exit 0' | tclsh`
 
     VTK_ARGS+=(
         "-DVTK_DEFAULT_RENDER_WINDOW_OFFSCREEN:BOOL=OFF"
-        "-DVTK_OPENGL_HAS_OSMESA:BOOL=OFF"
         "-DVTK_USE_TK:BOOL=ON"
         "-DTCL_INCLUDE_PATH=${PREFIX}/include"
         "-DTK_INCLUDE_PATH=${PREFIX}/include"
